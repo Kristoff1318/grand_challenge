@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import List
 import random
 
 class TemporalConstraint:
@@ -12,12 +12,12 @@ class TemporalConstraint:
         self.contingent = contingent
 
         if not self.contingent:
-            if not isinstance(constraint, tuple) or len(constraint) != 2 or not isinstance(constraint[0], float) or not isinstance(constraint[1], float):
-                raise Exception(f'Requirement constraint is not a float tuple of length 2')
+            if not isinstance(constraint, list) or len(constraint) != 2:
+                raise Exception(f'Requirement constraint is not a list of length 2')
     
     @property
     def set_bounded(self):
-        return isinstance(self.constraint, Tuple)
+        return isinstance(self.constraint, List)
     
     def sample(self):
         if not self.contingent:

@@ -1,20 +1,20 @@
 import numpy as np
-import copy
+from copy import deepcopy
 from scipy.optimize import linprog
 from temporal_constraint import TemporalConstraint
 from stn import STN
 
 def optimize_timepoints(template_stn : STN, a):
-    stn = copy.deepcopy(template_stn)
+    stn = deepcopy(template_stn)
 
     nodes = list(stn.stn.nodes)
-    contingent_dict = {}
+    contingent_edge_map = {}
     contingent_id = 0
 
     for i in range(len(nodes)):
         for j in range(len(nodes)):
             if stn.stn.has_edge(nodes[i], nodes[j]) and stn.stn[nodes[i]][nodes[j]]['tc'].contingent:
-                contingent_dict[ (nodes[i], nodes[j]) ] = contingent_id
+                contingent_edge_map[ (nodes[i], nodes[j]) ] = contingent_id
                 contingent_id += 1
 
     # Contingent reduction
@@ -22,7 +22,7 @@ def optimize_timepoints(template_stn : STN, a):
         if tc.contingent:
             ub = tc.constraint.ppf(1-a/2)
             lb = -tc.constraint.ppf(a/2)
-            stn.stn[u][v]['tc'] = TemporalConstraint((lb, ub), contingent=True)
+            stn.stn[u][v]['tc'] = TemporalConstraint([lb, ub], contingent=True)
     
     # LP setup
     state_dim = 2 * (len(nodes) + contingent_id)
@@ -62,7 +62,7 @@ def optimize_timepoints(template_stn : STN, a):
 
                 # Contingent
                 else:
-                    delta_id = contingent_dict[(nodes[i], nodes[j])]
+                    delta_id = contingent_edge_map[(nodes[i], nodes[j])]
                     coefs[0, 2*len(nodes) + 2*delta_id] = -1
                     coefs[0, 2*len(nodes) + 2*delta_id + 1] = -1
 
@@ -94,20 +94,37 @@ def optimize_timepoints(template_stn : STN, a):
                     b_eq = np.vstack([b_eq, [ub], [-lb]])
 
                     # print('Contingent', nodes[i], nodes[j], 'UB', ub, 'LB', -lb)
-    
-    bounds = 2 * [(0,0)]
-    bounds += 2 * (len(nodes)-1) * [(0,10)]
-    bounds += 2 * contingent_id * [(0, None)]
 
-    return linprog(coefs, A_ub, b_ub, A_eq, b_eq, bounds=bounds)
+    opt = linprog(coefs, A_ub, b_ub, A_eq, b_eq)
+
+    #~~~~~~~~~~~~~~~~
+    # Convert to STNU
+    # prefer not to do this in same function, but avoids reconstructing STNU
+    #~~~~~~~~~~~~~~~~
+    if opt.status == 0: 
+        for i, node in enumerate(nodes):
+            stn.stn['START'][node]['tc'].constraint = TemporalConstraint([opt.x[2*i+1], opt.x[2*i]])
+        for ce in contingent_edge_map:
+            stn.stn[ce[0]][ce[1]]['tc'].constraint[0] = -stn.stn[ce[0]][ce[1]]['tc'].constraint[0] - opt.x[2*len(nodes) + 2*contingent_edge_map[ce]+1]
+            stn.stn[ce[0]][ce[1]]['tc'].constraint[1] += opt.x[2*len(nodes) + 2*contingent_edge_map[ce]]
+
+    return {
+        'status' : opt.status,
+        'linprog_state' : opt.x if opt.status == 0 else None,
+        'stnu' : stn if opt.status == 0 else None
+    }
 
 def srea(stn, am, ap, r):
     if ap - am <= r:
-        return {'alpha' : ap, 'linprog' : optimize_timepoints(stn, ap) }
+        return {
+            'alpha' : ap,
+            'linprog_state' : optimize_timepoints(stn, ap)['linprog_state'],
+            'stnu' : optimize_timepoints(stn, ap)['stnu']
+        }
     
     an = (am + ap) / 2
 
-    if optimize_timepoints(stn, an).status == 2:
+    if optimize_timepoints(stn, an)['status'] == 2: # infeasible
         return srea(stn, an, ap, r)
     
     return srea(stn, am, an, r)

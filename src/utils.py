@@ -47,4 +47,4 @@ def format_num(v):
     elif v == -np.inf:
         return "-∞"
     else:
-        return str(v)
+        return str(round(v,2))
