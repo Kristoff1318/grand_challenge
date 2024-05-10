@@ -4,8 +4,8 @@ from scipy.optimize import linprog
 from temporal_constraint import TemporalConstraint
 from stn import STN
 
-def optimize_timepoints(stn2 : STN, a):
-    stn = copy.deepcopy(stn2)
+def optimize_timepoints(template_stn : STN, a):
+    stn = copy.deepcopy(template_stn)
 
     nodes = list(stn.stn.nodes)
     contingent_dict = {}
