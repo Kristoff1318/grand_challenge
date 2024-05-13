@@ -118,7 +118,10 @@ def optimize_timepoints(template_stn : STN, a):
 def convert_to_stnu(stn, opt, contingent_edge_map):
     nodes = stn.stn.nodes
     for i, node in enumerate(nodes):
-        stn.stn['START'][node]['tc'] = TemporalConstraint([opt.x[2*i+1], opt.x[2*i]])
+        if stn.stn.has_edge('START', node):
+            stn.stn['START'][node]['tc'] = TemporalConstraint([opt.x[2*i+1], opt.x[2*i]])
+        else:
+            stn.stn.add_edge('START', node, tc=TemporalConstraint([opt.x[2*i+1], opt.x[2*i]]))
     for ce in contingent_edge_map:
         stn.stn[ce[0]][ce[1]]['tc'].constraint[0] = -stn.stn[ce[0]][ce[1]]['tc'].constraint[0] - opt.x[2*len(nodes) + 2*contingent_edge_map[ce]+1]
         stn.stn[ce[0]][ce[1]]['tc'].constraint[1] += opt.x[2*len(nodes) + 2*contingent_edge_map[ce]]    

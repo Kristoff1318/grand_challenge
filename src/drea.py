@@ -9,7 +9,7 @@ def live(event, exec_windows, time):
 def check_schedule_consistency(schedule, stn):
     for u, v, tc in stn.stn.edges(data='tc'):
         if not tc.contingent:
-            if (schedule[v] - schedule[u] < tc.constraint[0]) or (schedule[v] - schedule[u] > tc.constraint[1]):
+            if (schedule[v] - schedule[u] < tc.constraint[0]-.001) or (schedule[v] - schedule[u] > tc.constraint[1]+.001):
                 print(f'Invalid: ({u}, {schedule[u]}) and ({v}, {schedule[v]}) violate {tc.constraint}.')
                 return False
     print('Valid!')

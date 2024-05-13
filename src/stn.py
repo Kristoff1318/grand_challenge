@@ -98,11 +98,17 @@ class STN:
             if event == 'START':
                 continue
             elif event not in schedule: # events must be scheduled after current time, but before makespan limit
-                tc = new_stn.stn['START'][event]['tc']
-                new_stn.stn['START'][event]['tc'] = TemporalConstraint([time, tc.constraint[1]])
+                if new_stn.stn.has_edge('START', event):
+                    tc = new_stn.stn['START'][event]['tc']
+                    new_stn.stn['START'][event]['tc'] = TemporalConstraint([time, tc.constraint[1]])
+                # else:
+                #     new_stn.stn.add_edge('START', event, tc= TemporalConstraint([time, np.inf]))
             else: 
                 exec_time = schedule[event]
-                new_stn.stn['START'][event]['tc'] = TemporalConstraint([exec_time, exec_time])
+                if new_stn.stn.has_edge('START', event):
+                    new_stn.stn['START'][event]['tc'] = TemporalConstraint([exec_time, exec_time])
+                else:
+                    new_stn.stn.add_edge('START', event, tc=TemporalConstraint([exec_time, exec_time]))
 
                 for neighbor in self.stn.neighbors(event):
                     if neighbor in schedule:
