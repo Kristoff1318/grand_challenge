@@ -34,15 +34,17 @@ def drea(pstn : STN, dispatcher : Dispatcher):
     run_srea = False
 
     k = 0
-    mAR = -1
-    mSC = 0
+    mAR = 2
+    mSC = -1
     dispatcher.start()
     while len(schedule) < guide_stn.stn.number_of_nodes():
         t = trunc(dispatcher.time(),1)
-        # print(f"{'Time:':<25}{t}")
-        # print(f"{'Dispatched:':<25}{schedule}")
-        # print(f"{'Exec windows:':<25}{execution_windows}")
-        # print(f"{'(Hidden) arrivals:':<25}{contingent_dispatch_arrivals}")
+        print(f"{'TIME:':<40}{t}\n")
+        print(f"{'CAPTURED P MASS:':<40}{1-alpha}\n")
+        print(f"{'DISPATCHED:':<40}{schedule}\n")
+        print(f"{'SREA RESULT (EXEC WINDOWS):':<40}{execution_windows}\n")
+        print(f"{'(HIDDEN) ARRIVALS:':<40}{contingent_dispatch_arrivals}\n")
+        print("===========")
         # print(t, schedule, execution_windows, contingent_dispatch_arrivals, )
         # print()
             
@@ -61,16 +63,15 @@ def drea(pstn : STN, dispatcher : Dispatcher):
             if guide_stn.enabled(req, schedule, predecessors):
                 req_enabled.add(req)
         
-        if run_srea and (1 - alpha) ** k <= mAR:
+        if run_srea:# and (1 - alpha) ** k <= mAR:
             updated_stn = pstn.execution_update(t, schedule, contingent_dispatch_arrivals)
             updated_srea = srea(updated_stn)
             if updated_srea['stnu'] is None:
-                # print("No LP solution, controllability not guaranteed")
-                pass
+                print("No LP solution, controllability not guaranteed")
             else:
-                if abs( updated_srea['alpha'] - alpha ) >= mSC:
-                    guide_stn, execution_windows, alpha = updated_srea['stnu'], updated_srea['execution_windows'], updated_srea['alpha']
-                    k = 0
+                #if abs( updated_srea['alpha'] - alpha ) >= mSC:
+                guide_stn, execution_windows, alpha = updated_srea['stnu'], updated_srea['execution_windows'], updated_srea['alpha']
+                k = 0
             contingent_map = guide_stn.contingent_map()
         
         for req in required_events:
@@ -81,10 +82,10 @@ def drea(pstn : STN, dispatcher : Dispatcher):
         
         for con in contingent_map:
             if guide_stn.enabled(con, schedule) and con not in contingent_dispatch_arrivals:
-                # if con == 'Aet':
-                #     contingent_dispatch_arrivals[con] = (t, t + 1.1 )
-                # else:
-                contingent_dispatch_arrivals[con] = (t, t + max(0.1, pstn.stn.edges[contingent_map[con]]['tc'].sample()) )
+                if con == 'Aet':
+                    contingent_dispatch_arrivals[con] = (t, t + 3.88 )
+                else:
+                    contingent_dispatch_arrivals[con] = (t, t + pstn.stn.edges[contingent_map[con]]['tc'].sample() )
         
         run_srea = False
 

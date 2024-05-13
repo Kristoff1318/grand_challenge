@@ -15,8 +15,9 @@ stn.add_edge('START', 'Bet', TemporalConstraint([0.0, 10.0]))
 
 stn.add_edge('Ast', 'Aet', TemporalConstraint(truncnorm(a=(0-6)/2, b=np.inf, loc=6, scale=2), contingent=True))
 stn.add_edge('Bst', 'Bet', TemporalConstraint(truncnorm(a=(0-2)/1, b=np.inf, loc=2, scale=1), contingent=True))
-# stn.add_edge('Bst', 'Bet', TemporalConstraint([2.0, 4.0]))
 stn.add_edge('Aet', 'Bet', TemporalConstraint([-2.0, 2.0]))
+
+# stn.add_edge('Bst', 'Bet', TemporalConstraint([2.0, 4.0]))
 
 # srea_result = srea(stn, 0, 1, 0.001)
 # print('Optimal alpha', srea_result['alpha'])
@@ -82,13 +83,13 @@ stn.add_edge('Aet', 'Bet', TemporalConstraint([-2.0, 2.0]))
 # stn_complex.add_edge('TaskC_end', 'TaskD_end', TemporalConstraint([0.0, 2.0]))
 # stn_complex.add_edge('TaskD_end', 'TaskC_end', TemporalConstraint([0.0, 2.0]))
 
-success = 0
-attempts = 500
-for i in range(attempts):
-    print(i)
-    dispatcher = Dispatcher(sim_time=True, quiet=True)
-    success += drea(stn, dispatcher)
+# success = 0
+# attempts = 500
+# for i in range(attempts):
+#     print(i)
+#     dispatcher = Dispatcher(sim_time=True, quiet=True)
+#     success += drea(stn, dispatcher)
+# print('Robustness:', success/attempts * 100)
 
-print('Robustness:', success/attempts * 100)
-# dispatcher = Dispatcher(sim_time=True)
-# drea(stn, dispatcher)
+dispatcher = Dispatcher(sim_time=True)
+drea(stn, dispatcher)
