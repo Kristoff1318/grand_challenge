@@ -101,8 +101,6 @@ class STN:
                 if new_stn.stn.has_edge('START', event):
                     tc = new_stn.stn['START'][event]['tc']
                     new_stn.stn['START'][event]['tc'] = TemporalConstraint([time, tc.constraint[1]])
-                # else:
-                #     new_stn.stn.add_edge('START', event, tc= TemporalConstraint([time, np.inf]))
             else: 
                 exec_time = schedule[event]
                 if new_stn.stn.has_edge('START', event):

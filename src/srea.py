@@ -97,7 +97,7 @@ def optimize_timepoints(template_stn : STN, a):
     
     # bounds = [[t, None]] * 2*len(nodes)
     # bounds += [[0, None]] * 2 * contingent_id
-
+    
     opt = linprog(coefs, A_ub, b_ub, A_eq, b_eq)
 
     #~~~~~~~~~~~~~~~~

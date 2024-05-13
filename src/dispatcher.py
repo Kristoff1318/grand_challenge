@@ -69,9 +69,10 @@ class Dispatcher():
 
     def receive(self, event):
         t = self.time()
-        self.print_time_message("Received {}".format(
-                                        event),
-                                    t)
+        if not self.quiet:
+            self.print_time_message("Received {}".format(
+                                            event),
+                                        t)
         return t
 
     
