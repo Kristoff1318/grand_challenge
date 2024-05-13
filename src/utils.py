@@ -1,4 +1,5 @@
 from IPython.display import display, SVG
+from math import floor
 import tempfile
 import subprocess
 import os
@@ -48,3 +49,6 @@ def format_num(v):
         return "-∞"
     else:
         return str(round(v,2))
+    
+def trunc(n, places):
+    return floor(n * 10 ** places) / 10 ** places

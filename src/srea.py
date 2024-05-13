@@ -94,6 +94,9 @@ def optimize_timepoints(template_stn : STN, a):
                     b_eq = np.vstack([b_eq, [ub], [-lb]])
 
                     # print('Contingent', nodes[i], nodes[j], 'UB', ub, 'LB', -lb)
+    
+    # bounds = [[t, None]] * 2*len(nodes)
+    # bounds += [[0, None]] * 2 * contingent_id
 
     opt = linprog(coefs, A_ub, b_ub, A_eq, b_eq)
 
@@ -101,24 +104,37 @@ def optimize_timepoints(template_stn : STN, a):
     # Convert to STNU
     # prefer not to do this in same function, but avoids reconstructing STNU
     #~~~~~~~~~~~~~~~~
+    
     if opt.status == 0: 
-        for i, node in enumerate(nodes):
-            stn.stn['START'][node]['tc'].constraint = TemporalConstraint([opt.x[2*i+1], opt.x[2*i]])
-        for ce in contingent_edge_map:
-            stn.stn[ce[0]][ce[1]]['tc'].constraint[0] = -stn.stn[ce[0]][ce[1]]['tc'].constraint[0] - opt.x[2*len(nodes) + 2*contingent_edge_map[ce]+1]
-            stn.stn[ce[0]][ce[1]]['tc'].constraint[1] += opt.x[2*len(nodes) + 2*contingent_edge_map[ce]]
+        convert_to_stnu(stn, opt, contingent_edge_map)
 
     return {
         'status' : opt.status,
-        'linprog_state' : opt.x if opt.status == 0 else None,
-        'stnu' : stn if opt.status == 0 else None
+        # 'linprog_state' : opt.x if opt.status == 0 else None,
+        'stnu' : stn if opt.status == 0 else None, 
+        'execution_windows' : extract_execution_windows(stn) if opt.status == 0 else None
     }
 
-def srea(stn, am, ap, r):
+def convert_to_stnu(stn, opt, contingent_edge_map):
+    nodes = stn.stn.nodes
+    for i, node in enumerate(nodes):
+        stn.stn['START'][node]['tc'] = TemporalConstraint([opt.x[2*i+1], opt.x[2*i]])
+    for ce in contingent_edge_map:
+        stn.stn[ce[0]][ce[1]]['tc'].constraint[0] = -stn.stn[ce[0]][ce[1]]['tc'].constraint[0] - opt.x[2*len(nodes) + 2*contingent_edge_map[ce]+1]
+        stn.stn[ce[0]][ce[1]]['tc'].constraint[1] += opt.x[2*len(nodes) + 2*contingent_edge_map[ce]]    
+
+def extract_execution_windows(stn):
+    execution_windows = {}
+    nodes = stn.stn.nodes
+    for node in nodes:
+        execution_windows[node] = [stn.stn['START'][node]['tc'][0], stn.stn['START'][node]['tc'][1]]
+    return execution_windows
+
+def srea(stn, am=0, ap=1, r=0.001):
     if ap - am <= r:
         return {
             'alpha' : ap,
-            'linprog_state' : optimize_timepoints(stn, ap)['linprog_state'],
+            'execution_windows' : optimize_timepoints(stn, ap)['execution_windows'],
             'stnu' : optimize_timepoints(stn, ap)['stnu']
         }
     

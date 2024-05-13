@@ -20,8 +20,8 @@ class Dispatcher():
 
     def start(self):
         if self.sim_time:
-            self.time_start = 0.0
-            self.t = 0.0
+            self.time_start = 0
+            self.t = 0
         else:
             self.time_start = time.time()
 
