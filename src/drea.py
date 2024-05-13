@@ -33,7 +33,7 @@ def drea(pstn : STN, dispatcher : Dispatcher):
     run_srea = False
 
     dispatcher.start()
-    while guide_stn.consistent() and len(schedule) < guide_stn.stn.number_of_nodes():
+    while len(schedule) < guide_stn.stn.number_of_nodes():
         t = trunc(dispatcher.time(), 2)
         print(t, schedule, execution_windows, contingent_dispatch_arrivals, )
         print()
@@ -44,7 +44,7 @@ def drea(pstn : STN, dispatcher : Dispatcher):
                 run_srea = True
             elif t == trunc(end,2):
                 schedule[con] = t
-                dispatcher.dispatch(con)
+                dispatcher.receive(con)
                 run_srea = True
         
         for req in required_events:
@@ -77,12 +77,12 @@ def drea(pstn : STN, dispatcher : Dispatcher):
 
         dispatcher.sleep(0.01)
     
-    print("~~~~~~Dispatching complete~~~~~~")
-    check_schedule_consistency(schedule, pstn)
     if len(schedule) == guide_stn.stn.number_of_nodes():
+        print("~~~~~~Dispatching complete~~~~~~")
+        check_schedule_consistency(schedule, pstn)
         print(schedule)
     else:
-        print("XX Schedule inconsistent")
+        print("Execution terminating early, STN inconsistent")
     
 
             

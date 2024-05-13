@@ -84,9 +84,9 @@ class STN:
     
     def find_predecessors(self, event):
         dispatchable_form = self.dispatchable_form()
-        predecessors = set()
+        predecessors = {'START'}
         for neighbor in dispatchable_form.neighbors(event):
-            if dispatchable_form[event][neighbor]['weight'] <= 0:
+            if dispatchable_form[event][neighbor]['weight'] < 0:
                 predecessors.add(neighbor) 
         return predecessors
     

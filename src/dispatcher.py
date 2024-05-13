@@ -66,6 +66,14 @@ class Dispatcher():
                                         event, ("" if delay == 0.0 else "(delay {:0.4f}s)".format(delay))),
                                     t)
         return t
+
+    def receive(self, event):
+        t = self.time()
+        self.print_time_message("Received {}".format(
+                                        event),
+                                    t)
+        return t
+
     
     def simulate_disturbance(self):
         delay = np.random.random() * self.disturbance_max_delay
